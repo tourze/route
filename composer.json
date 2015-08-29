@@ -1,0 +1,34 @@
+{
+  "name": "tourze/route",
+  "description": "途者PHP框架-路由部分",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "tourze",
+      "email": "dev@tourze.com"
+    }
+  ],
+  "require": {
+    "tourze/core": "dev-master"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "tourze\\Route\\": "src/"
+    },
+    "files": [
+      "bootstrap.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "tourze\\Route\\": "tests/"
+    },
+    "files": [
+      "bootstrap-dev.php"
+    ]
+  }
+}
