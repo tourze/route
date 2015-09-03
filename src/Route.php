@@ -91,7 +91,7 @@ class Route extends Object implements RouteInterface
      */
     public static function set($name, $uri = null, $regex = null, $force = false)
     {
-        Base::getLog()->info(__METHOD__ . ' call static get method', [
+        Base::getLog()->debug(__METHOD__ . ' call static get method', [
             'name'  => $name,
             'uri'   => $uri,
             'regex' => $regex,
@@ -118,7 +118,7 @@ class Route extends Object implements RouteInterface
      */
     public static function replace($name, $uri = null, $regex = null)
     {
-        Base::getLog()->info(__METHOD__ . ' call static replace method', [
+        Base::getLog()->debug(__METHOD__ . ' call static replace method', [
             'name'  => $name,
             'uri'   => $uri,
             'regex' => $regex,
@@ -396,7 +396,7 @@ class Route extends Object implements RouteInterface
             }
         }
 
-        Base::getLog()->info(__METHOD__ . ' set route params', [
+        Base::getLog()->debug(__METHOD__ . ' set route params', [
             'name'   => $uri,
             'params' => $params,
         ]);
@@ -461,7 +461,7 @@ class Route extends Object implements RouteInterface
             }
         }
 
-        Base::getLog()->info(__METHOD__ . ' final matched route params', [
+        Base::getLog()->debug(__METHOD__ . ' final matched route params', [
             'uri'    => $uri,
             'method' => $uri,
             'params' => $params,
@@ -564,7 +564,7 @@ class Route extends Object implements RouteInterface
         };
 
         $result = $compile($this->_uri, true);
-        Base::getLog()->info(__METHOD__ . ' get route compile result', $result);
+        Base::getLog()->debug(__METHOD__ . ' get route compile result', $result);
         $uri = $result ? array_shift($result) : $result;
 
         // 过滤URI中的重复斜杆
