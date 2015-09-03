@@ -2,6 +2,7 @@
 
 namespace tourze\Route;
 
+use tourze\Base\Base;
 use tourze\Base\Exception\BaseException;
 use tourze\Base\Helper\Arr;
 use tourze\Base\Helper\Url;
@@ -72,7 +73,7 @@ class Route extends Object implements RouteInterface
     /**
      * @var  array  记录所有路由信息的表
      */
-    protected static $_routes = [];
+    protected static $routeInstances = [];
 
     /**
      * 设置和保存指定的路由信息
@@ -90,11 +91,21 @@ class Route extends Object implements RouteInterface
      */
     public static function set($name, $uri = null, $regex = null, $force = false)
     {
-        if (isset(self::$_routes[$name]) && ! $force)
+        Base::getLog()->info(__METHOD__ . ' call static get method', [
+            'name'  => $name,
+            'uri'   => $uri,
+            'regex' => $regex,
+            'force' => $force,
+        ]);
+        if (isset(self::$routeInstances[$name]) && ! $force)
         {
-            return self::$_routes[$name];
+            return self::$routeInstances[$name];
         }
-        return self::$_routes[$name] = new Route($uri, $regex, $name);
+        return self::$routeInstances[$name] = new Route([
+            'uri'      => $uri,
+            'regex'    => $regex,
+            'identify' => $name,
+        ]);
     }
 
     /**
@@ -107,6 +118,11 @@ class Route extends Object implements RouteInterface
      */
     public static function replace($name, $uri = null, $regex = null)
     {
+        Base::getLog()->info(__METHOD__ . ' call static replace method', [
+            'name'  => $name,
+            'uri'   => $uri,
+            'regex' => $regex,
+        ]);
         return self::set($name, $uri, $regex, true);
     }
 
@@ -121,14 +137,18 @@ class Route extends Object implements RouteInterface
      */
     public static function get($name)
     {
-        if ( ! isset(Route::$_routes[$name]))
+        if ( ! isset(Route::$routeInstances[$name]))
         {
+            Base::getLog()->error(__METHOD__ . ' getting unknown route', [
+                'name'   => $name,
+                'exists' => array_keys(self::$routeInstances),
+            ]);
             throw new RouteNotFoundException('The requested route does not exist: :route', [
                 ':route' => $name
             ]);
         }
 
-        return Route::$_routes[$name];
+        return Route::$routeInstances[$name];
     }
 
     /**
@@ -139,7 +159,7 @@ class Route extends Object implements RouteInterface
      */
     public static function exists($name)
     {
-        return isset(self::$_routes[$name]);
+        return isset(self::$routeInstances[$name]);
     }
 
     /**
@@ -151,7 +171,7 @@ class Route extends Object implements RouteInterface
      */
     public static function all()
     {
-        return Route::$_routes;
+        return Route::$routeInstances;
     }
 
     /**
@@ -221,12 +241,12 @@ class Route extends Object implements RouteInterface
     protected $_identify = '';
 
     /**
-     * @var  array  额外执行的filter
+     * @var array 额外执行的filter
      */
     protected $_filters = [];
 
     /**
-     * @var string  当前URI
+     * @var string 当前URI
      */
     protected $_uri = '';
 
@@ -250,37 +270,12 @@ class Route extends Object implements RouteInterface
     protected $_routeRegex;
 
     /**
-     * 创建一条新的路由记录
-     *
-     *     $route = new Route($uri, $regex);
-     *
-     * @param string $uri      URI
-     * @param array  $regex    规则描述
-     * @param string $identify 路由名称
+     * @inheritdoc
      */
-    public function __construct($uri = null, $regex = null, $identify = null)
+    public function __construct($args = [])
     {
         parent::__construct();
-
-        if (null === $uri)
-        {
-            return;
-        }
-
-        if ( ! empty($uri))
-        {
-            $this->_uri = $uri;
-        }
-        if ( ! empty($regex))
-        {
-            $this->_regex = $regex;
-        }
-        if ( ! empty($identify))
-        {
-            $this->identify = $identify;
-        }
-
-        $this->_routeRegex = self::compile($uri, $regex);
+        $this->_routeRegex = self::compile($this->uri, $this->regex);
     }
 
     /**
@@ -298,7 +293,7 @@ class Route extends Object implements RouteInterface
             $route = $this;
         }
 
-        return array_search($route, self::$_routes);
+        return array_search($route, self::$routeInstances);
     }
 
     /**
@@ -401,22 +396,38 @@ class Route extends Object implements RouteInterface
             }
         }
 
+        Base::getLog()->info(__METHOD__ . ' set route params', [
+            'name'   => $uri,
+            'params' => $params,
+        ]);
+
         // 处理method
         if (isset($params['method']) && $params['method'])
         {
+            $pass = true;
             if (is_array($params['method']))
             {
                 if ( ! in_array($method, $params['method']))
                 {
-                    return false;
+                    $pass = false;
                 }
             }
             else
             {
                 if ($params['method'] != $method)
                 {
-                    return false;
+                    $pass = false;
                 }
+            }
+
+            if ( ! $pass)
+            {
+                Base::getLog()->notice(__METHOD__ . ' requested http method do not matched', [
+                    'uri'            => $uri,
+                    'param_method'   => $params['method'],
+                    'request_method' => $method,
+                ]);
+                return false;
             }
         }
 
@@ -449,6 +460,12 @@ class Route extends Object implements RouteInterface
                 }
             }
         }
+
+        Base::getLog()->info(__METHOD__ . ' final matched route params', [
+            'uri'    => $uri,
+            'method' => $uri,
+            'params' => $params,
+        ]);
 
         return $params;
     }
@@ -547,6 +564,7 @@ class Route extends Object implements RouteInterface
         };
 
         $result = $compile($this->_uri, true);
+        Base::getLog()->info(__METHOD__ . ' get route compile result', $result);
         $uri = $result ? array_shift($result) : $result;
 
         // 过滤URI中的重复斜杆
@@ -556,13 +574,11 @@ class Route extends Object implements RouteInterface
         if ($this->isExternal())
         {
             $host = $this->_defaults['host'];
-
             // 使用默认协议
             if (false === strpos($host, '://'))
             {
                 $host = Route::$defaultProtocol . $host;
             }
-
             $uri = rtrim($host, '/') . '/' . $uri;
         }
 
