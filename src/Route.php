@@ -239,9 +239,9 @@ class Route extends Object implements RouteInterface
      * @var array 默认参数
      */
     protected $_defaults = [
-        'method' => false,
+        'method' => '',
         'action' => 'index',
-        'host'   => false
+        'host'   => ''
     ];
 
     /**
