@@ -535,7 +535,7 @@ class Route extends Object implements RouteInterface
 
         Base::getLog()->debug(__METHOD__ . ' final matched route params', [
             'uri'    => $uri,
-            'method' => $uri,
+            'method' => $method,
             'params' => $params,
         ]);
 
