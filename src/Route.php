@@ -12,9 +12,10 @@ use tourze\Route\Exception\RouteNotFoundException;
 /**
  * 路由处理类
  *
- * @property  string $identify
- * @property  array  $regex
- * @property  string $uri
+ * @property string identify
+ * @property array  regex
+ * @property string uri
+ * @property string routeRegex
  * @package tourze\Route
  */
 class Route extends Object implements RouteInterface
@@ -241,6 +242,22 @@ class Route extends Object implements RouteInterface
     protected $_identify = '';
 
     /**
+     * @return string
+     */
+    public function getIdentify()
+    {
+        return $this->_identify;
+    }
+
+    /**
+     * @param string $identify
+     */
+    public function setIdentify($identify)
+    {
+        $this->_identify = $identify;
+    }
+
+    /**
      * @var array 额外执行的filter
      */
     protected $_filters = [];
@@ -251,9 +268,41 @@ class Route extends Object implements RouteInterface
     protected $_uri = '';
 
     /**
-     * @var array
+     * @return string
+     */
+    public function getUri()
+    {
+        return $this->_uri;
+    }
+
+    /**
+     * @param string $uri
+     */
+    public function setUri($uri)
+    {
+        $this->_uri = $uri;
+    }
+
+    /**
+     * @var array 匹配到的规则
      */
     protected $_regex = [];
+
+    /**
+     * @return array
+     */
+    public function getRegex()
+    {
+        return $this->_regex;
+    }
+
+    /**
+     * @param array $regex
+     */
+    public function setRegex($regex)
+    {
+        $this->_regex = $regex;
+    }
 
     /**
      * @var array 默认参数
@@ -265,17 +314,32 @@ class Route extends Object implements RouteInterface
     ];
 
     /**
-     * @var  string
+     * @var string
      */
     protected $_routeRegex;
 
     /**
+     * @return string
+     */
+    public function getRouteRegex()
+    {
+        return $this->_routeRegex;
+    }
+
+    /**
+     * @param string $routeRegex
+     */
+    public function setRouteRegex($routeRegex)
+    {
+        $this->_routeRegex = $routeRegex;
+    }
+
+    /**
      * @inheritdoc
      */
-    public function __construct($args = [])
+    public function init()
     {
-        parent::__construct();
-        $this->_routeRegex = self::compile($this->uri, $this->regex);
+        $this->routeRegex = self::compile($this->uri, $this->regex);
     }
 
     /**
@@ -372,10 +436,10 @@ class Route extends Object implements RouteInterface
         ]);
 
         // 先校验URI是否正确
-        if ( ! preg_match($this->_routeRegex, $uri, $matches))
+        if ( ! preg_match($this->routeRegex, $uri, $matches))
         {
             Base::getLog()->debug(__METHOD__ . ' route do not matched', [
-                'route'  => $this->identify,
+                'regex'  => $this->routeRegex,
                 'uri'    => $uri,
                 'method' => $method,
             ]);
@@ -592,57 +656,4 @@ class Route extends Object implements RouteInterface
 
         return $uri;
     }
-
-    /**
-     * 获取标示符
-     *
-     * @return string
-     */
-    public function getIdentify()
-    {
-        return $this->_identify;
-    }
-
-    /**
-     * 设置标示符
-     *
-     * @param string $identify
-     */
-    public function setIdentify($identify)
-    {
-        $this->_identify = $identify;
-    }
-
-    /**
-     * @return array
-     */
-    public function getRegex()
-    {
-        return $this->_regex;
-    }
-
-    /**
-     * @param array $regex
-     */
-    public function setRegex($regex)
-    {
-        $this->_regex = $regex;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUri()
-    {
-        return $this->_uri;
-    }
-
-    /**
-     * @param string $uri
-     */
-    public function setUri($uri)
-    {
-        $this->_uri = $uri;
-    }
-
 }
