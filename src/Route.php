@@ -367,10 +367,18 @@ class Route extends Object implements RouteInterface
     public function matches($uri, $method = null)
     {
         $uri = trim($uri, '/');
+        Base::getLog()->debug(__METHOD__ . ' begin to match uri', [
+            'uri' => $uri,
+        ]);
 
         // 先校验URI是否正确
         if ( ! preg_match($this->_routeRegex, $uri, $matches))
         {
+            Base::getLog()->debug(__METHOD__ . ' route do not matched', [
+                'route'  => $this->identify,
+                'uri'    => $uri,
+                'method' => $method,
+            ]);
             return false;
         }
 
