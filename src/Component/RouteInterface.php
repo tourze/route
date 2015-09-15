@@ -2,6 +2,7 @@
 
 namespace tourze\Route\Component;
 
+use tourze\Base\ComponentInterface;
 use tourze\Route\Entry;
 
 /**
@@ -9,7 +10,7 @@ use tourze\Route\Entry;
  *
  * @package tourze\Route
  */
-interface RouteInterface
+interface RouteInterface extends ComponentInterface
 {
 
     /**
